@@ -16,7 +16,7 @@ services:
     networks:
       - metric-monitoring
       - logs-monitoring
-  # APACHE SERVER EXPORTER
+  # APACHE SERVER EXPORTER FOR CONTAINER
   apache_exporter_container:
     image: lusotycoon/apache-exporter
     container: apache_exporter_container
@@ -27,7 +27,21 @@ services:
         target: 9117
         published: "9117"
         protocol: tcp
-    entrypoint: /bin/apache_exporter  --scrape_uri="http://httpd/server-status?auto"
+    entrypoint: /bin/apache_exporter --scrape_uri="http://httpd/server-status?auto"
+    networks:
+      - metric-monitoring
+  # APACHE SERVER EXPORTER FOR LOCALHOST
+  apache_exporter_local:
+    image: lusotycoon/apache-exporter
+    container: apache_exporter_localhost
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - mode: ingress
+        target: 9117
+        published: "9117"
+        protocol: tcp
+    entrypoint: /bin/apache_exporter --scrape_uri="http://localhost/server-status?auto"
     networks:
       - metric-monitoring
   # NODE EXPORTER
@@ -126,6 +140,8 @@ services:
       - ./config/promtail/:/etc/promtail/
       - /var/log:/var/log
     command: -config.file=/etc/promtail/promtail-config.yaml
+    networks:
+      - logs-monitoring
   # # GRAFANA
   # grafana:
   #   image: grafana/grafana:latest
