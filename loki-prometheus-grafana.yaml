@@ -110,7 +110,7 @@ services:
       - --config=/etc/grafana-config/grafana.ini
     volumes:
       - ./config/grafana/grafana.ini:/etc/grafana-config
-      - ./config/grafana/datasources.yaml:/etc/grafana/provisioning/datasources
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
     ports:
       - "3000:3000"
