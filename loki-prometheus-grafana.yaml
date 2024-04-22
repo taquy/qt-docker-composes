@@ -19,21 +19,21 @@ services:
   # APACHE SERVER EXPORTER FOR CONTAINER
   apache_exporter_container:
     image: lusotycoon/apache-exporter
-    container: apache_exporter_container
+    container_name: apache_exporter_container
     privileged: true
     restart: unless-stopped
     ports:
       - mode: ingress
         target: 9117
-        published: "9117"
+        published: "9118"
         protocol: tcp
-    entrypoint: /bin/apache_exporter --scrape_uri="http://httpd/server-status?auto"
+    entrypoint: /bin/apache_exporter --scrape_uri="http://httpd"
     networks:
       - metric-monitoring
   # APACHE SERVER EXPORTER FOR LOCALHOST
   apache_exporter_local:
     image: lusotycoon/apache-exporter
-    container: apache_exporter_localhost
+    container_name: apache_exporter_localhost
     privileged: true
     restart: unless-stopped
     ports:
@@ -41,7 +41,7 @@ services:
         target: 9117
         published: "9117"
         protocol: tcp
-    entrypoint: /bin/apache_exporter --scrape_uri="http://localhost/server-status?auto"
+    entrypoint: /bin/apache_exporter --scrape_uri="http://localhost"
     networks:
       - metric-monitoring
   # NODE EXPORTER
@@ -142,16 +142,25 @@ services:
     command: -config.file=/etc/promtail/promtail-config.yaml
     networks:
       - logs-monitoring
-  # # GRAFANA
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   entrypoint:
-  #     - /usr/share/grafana/bin/grafana-server
-  #     - --homepath=/usr/share/grafana
-  #     - --config=/etc/grafana-config/grafana.ini
-  #   volumes:
-  #     - ./config/grafana/configs:/etc/grafana-config
-  #     - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
-  #     - ./config/grafana/dashboards:/var/lib/grafana/dashboards
-  #   ports:
-  #     - "3000:3000"
+  # GRAFANA
+  grafana:
+    image: grafana/grafana:latest
+    entrypoint:
+      - /usr/share/grafana/bin/grafana-server
+      - --homepath=/usr/share/grafana
+      - --config=/etc/grafana-config/grafana.ini
+    volumes:
+      - ./config/grafana/configs:/etc/grafana-config
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+    environments:
+      GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_SIGNOUT_MENU: "true"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    ports:
+      - "3000:3000"
+    networks:
+      - metric-monitoring
+      - logs-monitoring
