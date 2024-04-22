@@ -84,7 +84,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./data/loki:/mnt/config
-      - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./config/loki/:/etc/loki/
+    command: -config.file=/mnt/config/loki-config.yaml
     expose:
       - 3100
     networks:
@@ -98,7 +99,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./data/promtail:/mnt/config
-      - ./config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - ./config/promtail/:/etc/promtail/
       - /var/log:/var/log
     command: -config.file=/etc/promtail/promtail-config.yaml
   # GRAFANA
