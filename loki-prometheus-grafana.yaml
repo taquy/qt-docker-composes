@@ -27,7 +27,7 @@ services:
       - metric-monitoring
   # CADVISOR
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     restart: unless-stopped
     privileged: true
@@ -42,74 +42,74 @@ services:
     networks:
       - metric-monitoring
   # PROMETHEUS
-  prometheus:
-    depends_on:
-      - cadvisor
-      - node-exporter
-    image: prom/prometheus:latest
-    container_name: prometheus
-    restart: unless-stopped
-    volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./data/prometheus:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    expose:
-      - 9090
-    networks:
-      - metric-monitoring
-  # ALERT MANAGER
-  alertmanager:
-    image: prom/alertmanager:v0.23.0
-    restart: unless-stopped
-    ports:
-      - "9093:9093"
-    volumes:
-      - "./config/alertmanager.yaml:/config/alertmanager.yaml"
-      - data/alertmanager:/data
-    command: --config.file=/config/alertmanager.yaml --log.level=debug
-    networks:
-      - metric-monitoring
-      - logs-monitoring
-  # LOKI
-  loki:
-    depends_on:
-      - alertmanager
-    image: grafana/loki:2.9.2
-    container_name: loki
-    restart: unless-stopped
-    volumes:
-      - ./data/loki:/mnt/config
-      - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
-    expose:
-      - 3100
-    networks:
-      - logs-monitoring
-  # PROMTAIL
-  promtail:
-    depends_on:
-      - loki
-    image: grafana/promtail:2.9.2
-    container_name: promtail
-    restart: unless-stopped
-    volumes:
-      - ./data/promtail:/mnt/config
-      - ./config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
-      - /var/log:/var/log
-    command: -config.file=/etc/promtail/promtail-config.yaml
-  # GRAFANA
+  # prometheus:
+  #   depends_on:
+  #     - cadvisor
+  #     - node-exporter
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - ./data/prometheus:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--web.enable-lifecycle'
+  #   expose:
+  #     - 9090
+  #   networks:
+  #     - metric-monitoring
+  # # ALERT MANAGER
+  # alertmanager:
+  #   image: prom/alertmanager:v0.23.0
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9093:9093"
+  #   volumes:
+  #     - "./config/alertmanager.yaml:/config/alertmanager.yaml"
+  #     - data/alertmanager:/data
+  #   command: --config.file=/config/alertmanager.yaml --log.level=debug
+  #   networks:
+  #     - metric-monitoring
+  #     - logs-monitoring
+  # # LOKI
+  # loki:
+  #   depends_on:
+  #     - alertmanager
+  #   image: grafana/loki:2.9.2
+  #   container_name: loki
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./data/loki:/mnt/config
+  #     - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
+  #   expose:
+  #     - 3100
+  #   networks:
+  #     - logs-monitoring
+  # # PROMTAIL
+  # promtail:
+  #   depends_on:
+  #     - loki
+  #   image: grafana/promtail:2.9.2
+  #   container_name: promtail
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./data/promtail:/mnt/config
+  #     - ./config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+  #     - /var/log:/var/log
+  #   command: -config.file=/etc/promtail/promtail-config.yaml
+  # # GRAFANA
   grafana:
-    image: grafana/grafana:10.0.3
+    image: grafana/grafana:latest
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana
       - --config=/etc/grafana-config/grafana.ini
     volumes:
-      - ./config/grafana/grafana.ini:/etc/grafana-config
+      - ./config/grafana/configs:/etc/grafana-config
       - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
       - ./config/grafana/dashboards:/var/lib/grafana/dashboards
     ports:
