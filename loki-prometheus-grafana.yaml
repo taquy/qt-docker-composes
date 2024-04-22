@@ -1,0 +1,116 @@
+version: '3.8'
+
+networks:
+  metric-monitoring:
+    driver: bridge
+  logs-monitoring: 
+    driver: bridge
+
+services:
+  # NODE EXPORTER
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    expose:
+      - 9100
+    networks:
+      - metric-monitoring
+  # CADVISOR
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - metric-monitoring
+  # PROMETHEUS
+  prometheus:
+    depends_on:
+      - cadvisor
+      - node-exporter
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    expose:
+      - 9090
+    networks:
+      - metric-monitoring
+  # ALERT MANAGER
+  alertmanager:
+    image: prom/alertmanager:v0.23.0
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - "./config/alertmanager.yaml:/config/alertmanager.yaml"
+      - data/alertmanager:/data
+    command: --config.file=/config/alertmanager.yaml --log.level=debug
+    networks:
+      - metric-monitoring
+      - logs-monitoring
+  # LOKI
+  loki:
+    depends_on:
+      - alertmanager
+    image: grafana/loki:2.9.2
+    container_name: loki
+    restart: unless-stopped
+    volumes:
+      - ./data/loki:/mnt/config
+      - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
+    expose:
+      - 3100
+    networks:
+      - logs-monitoring
+  # PROMTAIL
+  promtail:
+    depends_on:
+      - loki
+    image: grafana/promtail:2.9.2
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - ./data/promtail:/mnt/config
+      - ./config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/promtail-config.yaml
+  # GRAFANA
+  grafana:
+    image: grafana/grafana:10.0.3
+    entrypoint:
+      - /usr/share/grafana/bin/grafana-server
+      - --homepath=/usr/share/grafana
+      - --config=/etc/grafana-config/grafana.ini
+    volumes:
+      - ./config/grafana/grafana.ini:/etc/grafana-config
+      - ./config/grafana/datasources.yaml:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3000:3000"
