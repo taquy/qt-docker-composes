@@ -7,6 +7,29 @@ networks:
     driver: bridge
 
 services:
+  # APACHE SERVER
+  httpd:
+    image: httpd
+    container_name: httpd
+    ports:
+      - "81:80"
+    networks:
+      - metric-monitoring
+      - logs-monitoring
+  # APACHE SERVER EXPORTER
+  apache_exporter_container:
+    image: lusotycoon/apache-exporter
+    container: apache_exporter_container
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - mode: ingress
+        target: 9117
+        published: "9117"
+        protocol: tcp
+    entrypoint: /bin/apache_exporter  --scrape_uri="http://httpd/server-status?auto"
+    networks:
+      - metric-monitoring
   # NODE EXPORTER
   node-exporter:
     image: prom/node-exporter:latest
@@ -41,19 +64,34 @@ services:
       - /dev/disk/:/dev/disk:ro
     networks:
       - metric-monitoring
+  # ALERT MANAGER
+  alertmanager:
+    image: prom/alertmanager:latest
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./config/alertmanager/:/config/
+      - ./data/alertmanager:/data/
+    command: --config.file=/config/alertmanager.yaml --log.level=debug
+    networks:
+      - metric-monitoring
+      - logs-monitoring
   # PROMETHEUS
   prometheus:
     depends_on:
       - cadvisor
       - node-exporter
+      - alertmanager
     image: prom/prometheus:latest
     container_name: prometheus
     restart: unless-stopped
+    user: "1000:1000"
     volumes:
       - ./config/prometheus:/etc/prometheus/
-      - ./data/prometheus:/prometheus
+      - ./data/prometheus:/prometheus/
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--config.file=/etc/prometheus/prometheus.yaml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
@@ -62,19 +100,6 @@ services:
       - 9090
     networks:
       - metric-monitoring
-  # # ALERT MANAGER
-  alertmanager:
-    image: prom/alertmanager:latest
-    restart: unless-stopped
-    ports:
-      - "9093:9093"
-    volumes:
-      - "./config/alertmanager/:/config/"
-      - ./data/alertmanager:/data
-    command: --config.file=/config/alertmanager.yaml --log.level=debug
-    networks:
-      - metric-monitoring
-      - logs-monitoring
   # LOKI
   loki:
     depends_on:
@@ -83,9 +108,8 @@ services:
     container_name: loki
     restart: unless-stopped
     volumes:
-      - ./data/loki:/mnt/config
       - ./config/loki/:/etc/loki/
-    command: -config.file=/mnt/config/loki-config.yaml
+    command: -config.file=/etc/loki/loki-config.yaml
     expose:
       - 3100
     networks:
@@ -102,16 +126,16 @@ services:
       - ./config/promtail/:/etc/promtail/
       - /var/log:/var/log
     command: -config.file=/etc/promtail/promtail-config.yaml
-  # GRAFANA
-  grafana:
-    image: grafana/grafana:latest
-    entrypoint:
-      - /usr/share/grafana/bin/grafana-server
-      - --homepath=/usr/share/grafana
-      - --config=/etc/grafana-config/grafana.ini
-    volumes:
-      - ./config/grafana/configs:/etc/grafana-config
-      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
-      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
-    ports:
-      - "3000:3000"
+  # # GRAFANA
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   entrypoint:
+  #     - /usr/share/grafana/bin/grafana-server
+  #     - --homepath=/usr/share/grafana
+  #     - --config=/etc/grafana-config/grafana.ini
+  #   volumes:
+  #     - ./config/grafana/configs:/etc/grafana-config
+  #     - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+  #     - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+  #   ports:
+  #     - "3000:3000"
