@@ -81,6 +81,7 @@ services:
   # ALERT MANAGER
   alertmanager:
     image: prom/alertmanager:latest
+    container_name: alertmanager
     restart: unless-stopped
     ports:
       - "9093:9093"
@@ -145,12 +146,13 @@ services:
   # GRAFANA
   grafana:
     image: grafana/grafana:latest
+    container_name: grafana
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana
       - --config=/etc/grafana-config/grafana.ini
     volumes:
-      - ./grafana/providers:/etc/grafana/provisioning/dashboards
+      - ./config/grafana/providers:/etc/grafana/provisioning/dashboards
       - ./config/grafana/configs:/etc/grafana-config
       - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
       - ./config/grafana/dashboards:/var/lib/grafana/dashboards
