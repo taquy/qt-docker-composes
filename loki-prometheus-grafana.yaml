@@ -6,6 +6,9 @@ networks:
   logs-monitoring: 
     driver: bridge
 
+volumes:
+  prometheus: {}
+
 services:
   # APACHE SERVER
   httpd:
@@ -62,14 +65,23 @@ services:
       - 9100
     networks:
       - metric-monitoring
+  # REDIS
+  redis:
+    image: redis:latest
+    container_name: redis
+    expose:
+      - 9100
+    networks:
+      - metric-monitoring
   # CADVISOR
   cadvisor:
+    depends_on:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     restart: unless-stopped
     privileged: true
-    ports:
-      - "8080:8080"
+    expose:
+      - 8080
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -101,10 +113,10 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     restart: unless-stopped
-    user: "1000:1000"
+    privileged: true
     volumes:
       - ./config/prometheus:/etc/prometheus/
-      - ./data/prometheus:/prometheus/
+      - prometheus:/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yaml'
       - '--storage.tsdb.path=/prometheus'
