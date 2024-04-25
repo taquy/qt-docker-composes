@@ -8,6 +8,7 @@ networks:
 
 volumes:
   prometheus: {}
+  alertmanager: {}
 
 services:
   # APACHE SERVER
@@ -76,6 +77,7 @@ services:
   # CADVISOR
   cadvisor:
     depends_on:
+      - redis
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     restart: unless-stopped
@@ -99,7 +101,7 @@ services:
       - "9093:9093"
     volumes:
       - ./config/alertmanager/:/config/
-      - ./data/alertmanager:/data/
+      - alertmanager:/data/
     command: --config.file=/config/alertmanager.yaml --log.level=debug
     networks:
       - metric-monitoring
@@ -149,7 +151,6 @@ services:
     container_name: promtail
     restart: unless-stopped
     volumes:
-      - ./data/promtail:/mnt/config
       - ./config/promtail/:/etc/promtail/
       - /var/log:/var/log
     command: -config.file=/etc/promtail/promtail-config.yaml
