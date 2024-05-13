@@ -14,19 +14,3 @@ wget https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/
 mkdir -p config/grafana/
 wget https://raw.githubusercontent.com/grafana/grafana/main/conf/sample.ini -O config/grafana/configs/grafana.ini
 ```
-
-2. Create volume directories
-
-```sh
-mkdir -p ./data/alertmanager
-mkdir -p ./data/loki
-mkdir -p ./data/promtail
-mkdir -p ./data/prometheus
-```
-
-3. Update configuration
-
-3.1. For Loki configuration
-```sh
-
-```

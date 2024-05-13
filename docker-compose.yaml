@@ -86,7 +86,7 @@ services:
       - 8080
     volumes:
       - /:/rootfs:ro
-      - /var/run:/var/run:ro
+      - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
@@ -168,7 +168,7 @@ services:
       - ./config/grafana/providers:/etc/grafana/provisioning/dashboards
       - ./config/grafana/configs:/etc/grafana-config
       - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
-      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+      # - ./config/grafana/dashboards:/var/lib/grafana/dashboards
     environment:
       GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
       GF_AUTH_ANONYMOUS_ENABLED: "true"
