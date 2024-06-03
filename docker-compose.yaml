@@ -22,29 +22,20 @@ services:
       - logs-monitoring
   # APACHE SERVER EXPORTER FOR CONTAINER
   apache_exporter_container:
-    image: lusotycoon/apache-exporter
+    image: bitnami/apache-exporter:latest
     container_name: apache_exporter_container
     privileged: true
     restart: unless-stopped
-    ports:
-      - mode: ingress
-        target: 9117
-        published: "9118"
-        protocol: tcp
-    entrypoint: /bin/apache_exporter --scrape_uri="http://httpd"
+    ports: ['9118:9117']
     networks:
       - metric-monitoring
   # APACHE SERVER EXPORTER FOR LOCALHOST
   apache_exporter_local:
-    image: lusotycoon/apache-exporter
+    image: bitnami/apache-exporter:latest
     container_name: apache_exporter_localhost
     privileged: true
     restart: unless-stopped
-    ports:
-      - mode: ingress
-        target: 9117
-        published: "9117"
-        protocol: tcp
+    expose: ['9117']
     entrypoint: /bin/apache_exporter --scrape_uri="http://localhost"
     networks:
       - metric-monitoring
