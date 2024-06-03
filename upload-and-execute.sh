@@ -1,7 +1,9 @@
 #!/bin/bash
 
-rsync -avz -e "ssh -i \"$HOME/.ssh/maas\""  --exclude='.git' ./ qt@192.168.64.2:~/qt-docker-composes 
+export HOSTNAME='192.168.66.5'
 
-ssh -i $HOME/.ssh/maas qt@192.168.64.2 "docker-compose down --remove-orphans"
+rsync -avz -e "ssh -i \"$HOME/.ssh/maas\""  --exclude='.git' ./ qt@$HOSTNAME:~/qt-docker-composes 
 
-ssh -i $HOME/.ssh/maas qt@192.168.64.2 "docker-compose up"
+ssh -i $HOME/.ssh/maas qt@$HOSTNAME "docker-compose down --remove-orphans"
+
+ssh -i $HOME/.ssh/maas qt@$HOSTNAME "docker-compose up"
