@@ -36,10 +36,12 @@ services:
     container_name: apache_exporter_localhost
     privileged: true
     restart: unless-stopped
-    expose: ['9117']
-    entrypoint: /bin/apache_exporter --scrape_uri="http://localhost:8001/server-status?auto"
+    expose: ['9119:9117']
+    entrypoint: /bin/apache_exporter --scrape_uri="http://host.docker.internal:8001/server-status?auto"
     networks:
       - metric-monitoring
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   # NODE EXPORTER
   node-exporter:
     image: prom/node-exporter:latest

@@ -41,3 +41,18 @@ sudo nginx -t
 sudo systemctl reload nginx
 sudo systemctl restart nginx
 ```
+
+3. Enable apache status
+
+3.1. Manually
+```sh
+# update the below file (for apache in ubuntu)
+sudo nano /etc/apache2/mods-available/status.conf
+```
+
+3.2. Using automated script
+```sh
+sudo apt install -y python-is-python3
+sudo apt install python3-pip -y
+pip install apache_conf_parser
+```
