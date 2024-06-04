@@ -11,12 +11,30 @@ volumes:
   alertmanager: {}
 
 services:
+  # NGINX SERVER
+  nginx:
+    image: nginx
+    container_name: nginx
+    ports: ["82:80"]
+    environment:
+      - NGINX_HOST=qt
+      - NGINX_PORT=80
+    networks:
+      - metric-monitoring
+      - logs-monitoring
+  # NGINX SERVER EXPORTER FOR CONTAINER
+  nginx_exporter_container:
+    image: nginx/nginx-prometheus-exporter
+    container_name: nginx_exporter_container
+    command: 
+      - --nginx.scrape-uri=http://nginx:8080/stub_status
+    networks:
+      - metric-monitoring
   # APACHE SERVER
   httpd:
     image: httpd
     container_name: httpd
-    ports:
-      - "81:80"
+    ports: ["81:80"]
     networks:
       - metric-monitoring
       - logs-monitoring
@@ -36,7 +54,7 @@ services:
     container_name: apache_exporter_localhost
     privileged: true
     restart: unless-stopped
-    expose: ['9119:9117']
+    ports: ['9119:9117']
     entrypoint: /bin/apache_exporter --scrape_uri="http://host.docker.internal:8001/server-status?auto"
     networks:
       - metric-monitoring

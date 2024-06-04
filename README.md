@@ -56,3 +56,39 @@ sudo apt install -y python-is-python3
 sudo apt install python3-pip -y
 pip install apache_conf_parser
 ```
+
+4. Enable nginx status
+
+3.1. Manually in container
+```sh
+docker exec -it nginx bash
+
+apt update -y
+apt install -y vim
+
+vi /etc/nginx/conf.d/default.conf
+
+# add following lines 
+location /server-status {
+    stub_status;
+}
+
+exit
+
+docker restart nginx
+
+curl localhost:82/server-status
+```
+
+3.2. Manually in host
+```sh
+sudo vi /etc/nginx/sites-available/default
+
+# add following lines 
+location /server-status {
+    stub_status;
+}
+
+sudo systemctl restart nginx
+curl localhost:8002/server-status
+```
