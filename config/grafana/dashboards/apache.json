@@ -754,7 +754,7 @@
   },
   "timezone": "",
   "title": "Apache",
-  "uid": "apache-exporter-localhost",
+  "uid": "apache-exporter",
   "version": 1,
   "weekStart": ""
 }
