@@ -44,8 +44,16 @@ sudo systemctl restart nginx
 
 3. Enable apache status
 
-3.1. Manually
+3.1. Manually in Container
 ```sh
+# update /usr/local/apache2/conf/extra/httpd-info.conf
+vi /usr/local/apache2/conf/extra/httpd-info.conf
+
+<Location /server-status>
+    SetHandler server-status
+    Require all granted
+</Location>
+
 # update the below file (for apache in ubuntu)
 sudo nano /etc/apache2/mods-available/status.conf
 ```
