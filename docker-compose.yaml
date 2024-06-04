@@ -9,6 +9,7 @@ networks:
 volumes:
   prometheus: {}
   alertmanager: {}
+  influxdb: {}
 
 services:
   # NGINX SERVER
@@ -44,6 +45,19 @@ services:
       - metric-monitoring
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  # INFLUXDB FOR TELEGRAF
+  influxdb:
+    image: influxdb:2
+    container_name: influxdb
+    ports: ["8086:8086"]
+    volumes:
+      - influxdb:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: root
+      DOCKER_INFLUXDB_INIT_PASSWORD: root1234
+      DOCKER_INFLUXDB_INIT_ORG: qt
+      DOCKER_INFLUXDB_INIT_BUCKET: default
   # APACHE SERVER
   httpd:
     image: httpd
