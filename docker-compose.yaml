@@ -27,9 +27,19 @@ services:
     image: nginx/nginx-prometheus-exporter
     container_name: nginx_exporter_container
     command: 
-      - --nginx.scrape-uri=http://nginx:8080/stub_status
+      - --nginx.scrape-uri=http://nginx:80/server-status
     networks:
       - metric-monitoring
+  # NGINX SERVER EXPORTER FOR HOST MACHINE
+  nginx_exporter_host:
+    image: nginx/nginx-prometheus-exporter
+    container_name: nginx_exporter_host
+    command: 
+      - --nginx.scrape-uri=http://host.docker.internal:80/server-status
+    networks:
+      - metric-monitoring
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   # APACHE SERVER
   httpd:
     image: httpd
@@ -48,10 +58,10 @@ services:
     entrypoint: /bin/apache_exporter --scrape_uri="http://httpd/server-status?auto"
     networks:
       - metric-monitoring
-  # APACHE SERVER EXPORTER FOR LOCALHOST
-  apache_exporter_local:
+  # APACHE SERVER EXPORTER FOR HOST MACHINE
+  apache_exporter_host:
     image: bitnami/apache-exporter:latest
-    container_name: apache_exporter_localhost
+    container_name: apache_exporter_host
     privileged: true
     restart: unless-stopped
     ports: ['9119:9117']
