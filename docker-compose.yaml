@@ -58,6 +58,8 @@ services:
       DOCKER_INFLUXDB_INIT_PASSWORD: root1234
       DOCKER_INFLUXDB_INIT_ORG: qt
       DOCKER_INFLUXDB_INIT_BUCKET: default
+    networks:
+      - metric-monitoring
   # APACHE SERVER
   httpd:
     image: httpd
